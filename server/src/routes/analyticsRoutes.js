@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { getProjectAnalytics, getWorkspaceAnalytics, getUserAnalytics } from '../controllers/analyticsController.js';
+import { getProjectAnalytics, getWorkspaceAnalytics, getUserAnalytics } from '../controllers/analuticsController.js'
 import { protect } from '../middleware/authMiddleware.js';
 
 router.use(protect);
