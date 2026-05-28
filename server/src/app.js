@@ -9,7 +9,7 @@ import dotenv from 'dotenv'
 
 import connectDB from './config/dbConfig.js';
 import { initSocket } from './socket/index.js'
-import passport from './config/passportConfig.js';
+import  './config/passportConfig.js';
 
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -89,4 +89,4 @@ server.listen(PORT, () => {
   console.log(`🚀 TeamFlow server running on port ${PORT}`);
 });
 
-module.exports = { app, server };
+export{ app, server };
