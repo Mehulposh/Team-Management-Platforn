@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { uploadTaskAttachment, deleteTaskAttachment, uploadAvatar } = require('../controllers/fileController');
-const { protect } = require('../middleware/auth');
-const { upload } = require('../config/cloudinary');
+import { uploadTaskAttachment, deleteTaskAttachment, uploadAvatar } from '../controllers/fileController.js';
+import { protect } from '../middleware/authMiddleware.js';
+import { upload } from '../config/cloudinaryConfig.js';
 
 router.use(protect);
 router.post('/upload/task/:taskId', upload.single('file'), uploadTaskAttachment);
