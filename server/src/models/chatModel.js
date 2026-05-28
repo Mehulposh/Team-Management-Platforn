@@ -111,4 +111,4 @@ messageSchema.index({ channel: 1, createdAt: -1 });
 const Channel = mongoose.model('Channel', channelSchema);
 const Message = mongoose.model('Message', messageSchema);
 
-module.exports = { Channel, Message };
+export  { Channel, Message };
