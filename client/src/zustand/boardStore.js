@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { boardsAPI, tasksAPI } from '../api';
+import { boardsAPI, tasksAPI } from '../api/apiFunctions.js';
 
 export const useBoardStore = create((set, get) => ({
   board: null,
