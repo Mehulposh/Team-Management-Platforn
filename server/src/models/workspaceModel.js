@@ -82,17 +82,25 @@ const workspaceSchema = new mongoose.Schema(
 );
 
 // Auto-generate slug from name
-workspaceSchema.pre('save', async function (next) {
-  if (this.isModified('name') && !this.slug) {
-    let base = this.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
-    let slug = base;
-    let count = 1;
-    while (await mongoose.model('Workspace').findOne({ slug })) {
-      slug = `${base}-${count++}`;
-    }
-    this.slug = slug;
+workspaceSchema.pre('save', async function () {
+  if (this.slug) return; // already has one, keep it
+  if (!this.isNew && !this.isModified('name')) return;
+ 
+  const base = this.name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+ 
+  let slug = base;
+  let count = 1;
+  const Model = mongoose.models.Workspace;
+ 
+  while (await Model.findOne({ slug, _id: { $ne: this._id } })) {
+    slug = `${base}-${count++}`;
   }
-  next();
+ 
+  this.slug = slug;
 });
 
 export default mongoose.model('Workspace', workspaceSchema);
