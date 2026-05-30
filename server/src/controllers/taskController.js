@@ -12,7 +12,8 @@ export const getTasks = async (req, res, next) => {
 
     if (project) query.project = project;
     if (columnId) query.columnId = columnId;
-    if (sprint) query.sprint = sprint;
+    if (sprint === 'none') query.sprint = null;
+    else if (sprint) query.sprint = sprint;
     if (assignee) query.assignees = assignee;
     if (priority) query.priority = priority;
     if (status) query.status = status;
