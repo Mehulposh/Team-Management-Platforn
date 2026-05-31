@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useBoardStore } from '../../store/boardStore';
+import { useBoardStore } from '../zustand/boardStore.js';
 import toast from 'react-hot-toast';
 
 export default function CreateTaskModal({ columnId, boardId, projectId, workspaceId, onClose }) {
