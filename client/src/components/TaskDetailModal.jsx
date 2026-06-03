@@ -1,12 +1,15 @@
 import { useState, useEffect ,useCallback } from 'react';
-import { tasksAPI, commentsAPI } from '../api/apiFunctions.js';
+import { tasksAPI, commentsAPI  } from '../api/apiFunctions.js';
 import { useAuthStore } from '../zustand/authStore.js';
 import { useBoardStore } from '../zustand/boardStore.js';
 import Avatar from './Avatar.jsx';
+import AssigneePicker from './AssigneePicker.jsx';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
 const PRIORITIES = ['urgent', 'high', 'medium', 'low'];
+
+
 
 export default function TaskDetailModal({ task: initialTask, onClose }) {
   const { user } = useAuthStore();
@@ -80,6 +83,17 @@ export default function TaskDetailModal({ task: initialTask, onClose }) {
       setTask(data.task);
     } catch (err) {console.log(err);
     }
+  };
+
+  // Called by AssigneePicker with the full updated assignees array
+  const handleAssigneesUpdate = async (updatedAssignees) => {
+    const ids = updatedAssignees.map((a) => a._id || a);
+    try {
+      const { data } = await tasksAPI.updateAssignees(task._id, ids);
+      setTask((prev) => ({ ...prev, assignees: data.task.assignees }));
+      updateTask(task._id, { assignees: data.task.assignees });
+      toast.success('Assignees updated');
+    } catch (_) { toast.error('Failed to update assignees'); }
   };
 
   return (
@@ -224,17 +238,11 @@ export default function TaskDetailModal({ task: initialTask, onClose }) {
 
               {/* Right: metadata */}
               <div className="w-52 p-5 border-l border-border space-y-4 flex-shrink-0">
-                <div>
-                  <label className="label">Assignees</label>
-                  <div className="flex flex-wrap gap-1">
-                    {task.assignees?.map((a) => (
-                      <div key={a._id} className="flex items-center gap-1.5 bg-surface2 rounded-full px-2 py-1">
-                        <Avatar name={a.name} src={a.avatar} size={16} />
-                        <span className="text-xs">{a.name.split(' ')[0]}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                
+               <AssigneePicker 
+                 assignees={task.assignees || []}
+                 onUpdate={handleAssigneesUpdate}
+               />
                 <div>
                   <label className="label">Due Date</label>
                   <input
