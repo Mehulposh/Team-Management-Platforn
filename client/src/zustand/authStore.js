@@ -13,6 +13,10 @@ export const useAuthStore = create(
 
       setTokens: (accessToken, refreshToken) => set({ accessToken, refreshToken }),
 
+      // Clears state only — no API call. Used by the axios interceptor to
+      // avoid triggering another request (which would loop back into the interceptor).
+      clearAuth: () => set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false }),
+     
       login: async (credentials) => {
         set({ isLoading: true });
         try {
@@ -26,6 +30,8 @@ export const useAuthStore = create(
           });
           return { success: true };
         } catch (err) {
+          console.error('Login failed',err);
+          
           set({ isLoading: false });
           return { success: false, error: err.response?.data?.error || 'Login failed' };
         }
@@ -49,8 +55,15 @@ export const useAuthStore = create(
         }
       },
 
+
+      // Full logout — fires the API call to invalidate server-side session,
+      // then clears local state. Only called by user action (clicking logout),
+      // never by the axios interceptor.
       logout: async () => {
-        try { await authAPI.logout(); } catch (err) {console.log(err);
+         const token = get().accessToken;
+        if (token) {
+          try { await authAPI.logout(); } catch (err) {console.error(err);
+          }
         }
         set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
       },
