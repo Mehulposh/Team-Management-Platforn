@@ -28,8 +28,11 @@ export const register = async (req, res, next) => {
       emailVerificationExpire: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
-    await sendVerificationEmail(user.email, user.name, verificationToken);
-
+    // Fire-and-forget — email misconfiguration must NOT block registration
+    sendVerificationEmail(user.email, user.name, verificationToken).catch((e) =>
+      console.error('Verification email failed (non-fatal):', e.message)
+    );
+ 
     sendTokenResponse(user, 201, res);
   } catch (err) {
     next(err);
@@ -40,14 +43,26 @@ export const register = async (req, res, next) => {
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+    if (!email || !password) 
+      return res.status(400).json({ error: 'Email and password required' });
 
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password +refreshToken');
-    if (!user || !user.password) return res.status(401).json({ error: 'Invalid credentials' });
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password ');
+    if (!user || !user.password) 
+      return res.status(401).json({ error: 'Invalid credentials' });
 
+    if (!user.password) {
+      // Registered via Google OAuth — no password set
+      return res.status(401).json({
+        error: 'This account uses Google sign-in. Please use "Continue with Google".',
+      });
+    }
+ 
     const isMatch = await user.comparePassword(password);
-    if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
+     if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+ 
     sendTokenResponse(user, 200, res);
   } catch (err) {
     next(err);
