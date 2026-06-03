@@ -6,6 +6,9 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// Routes that should NEVER trigger the refresh/retry logic
+const AUTH_ROUTES = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout'];
+
 // Attach token to every request
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().accessToken;
@@ -30,6 +33,11 @@ api.interceptors.response.use(
   async (error) => {
     const original = error.config;
 
+    // Skip retry logic for auth routes and already-retried requests
+    const isAuthRoute = AUTH_ROUTES.some((r) => original.url?.includes(r));
+    if (isAuthRoute || original._retry) {
+      return Promise.reject(error);
+    }
     if (error.response?.status === 401 && !original._retry) {
       if (refreshing) {
         return new Promise((resolve, reject) => {
@@ -54,7 +62,8 @@ api.interceptors.response.use(
         return api(original);
       } catch (err) {
         processQueue(err, null);
-        useAuthStore.getState().logout();
+        // Clear state without calling the API (avoid infinite loop)
+        useAuthStore.getState().clearAuth();        
         window.location.href = '/login';
         return Promise.reject(err);
       } finally {
