@@ -85,6 +85,7 @@ export default function AppShell() {
   const { unreadCount, fetch: fetchNotifications } = useNotificationStore();
   const [showNotifs, setShowNotifs] = useState(false);
   const [showCreateProject, setShowCreateProject] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   useSocket();
 
@@ -100,19 +101,34 @@ export default function AppShell() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
+    {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+    )}
       {/* SIDEBAR */}
-      <aside className="w-56 min-w-56 bg-surface border-r border-border flex flex-col">
+      <aside className={`fixed lg:relative z-50 lg:z-auto w-56 min-w-56 h-full bg-surface border-r border-border flex flex-col
+        transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Logo */}
         <div className="px-4 py-4 border-b border-border flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-white font-bold text-sm">
             T
           </div>
-          <div>
+
+          <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold leading-none">TeamFlow</div>
-            <div className="text-[10px] text-muted mt-0.5 uppercase tracking-wide truncate max-w-[120px]">
+            <div className="text-[10px] text-muted mt-0.5 uppercase tracking-wide truncate">
               {activeWorkspace?.name || (wsLoading ? 'Loading…' : 'No workspace')}
             </div>
           </div>
+
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden text-muted hover:text-white ml-1"
+          >
+            <i className="ti ti-x text-base" />
+          </button>
         </div>
 
         {/* Nav */}
@@ -124,6 +140,7 @@ export default function AppShell() {
           <NavLink
             to="/"
             end
+            onClick={() => setSidebarOpen(false)}
             className={({ isActive }) =>
               `flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-all ${
                 isActive ? 'bg-accent/15 text-accent' : 'text-muted hover:bg-surface2 hover:text-white'
@@ -136,6 +153,7 @@ export default function AppShell() {
 
           <NavLink
             to="/chat"
+            onClick={() => setSidebarOpen(false)}
             className={({ isActive }) =>
               `flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-all ${
                 isActive ? 'bg-accent/15 text-accent' : 'text-muted hover:bg-surface2 hover:text-white'
@@ -148,6 +166,7 @@ export default function AppShell() {
 
           <NavLink
             to="/settings"
+            onClick={() => setSidebarOpen(false)}
             className={({ isActive }) =>
               `flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-all ${
                 isActive ? 'bg-accent/15 text-accent' : 'text-muted hover:bg-surface2 hover:text-white'
@@ -176,12 +195,18 @@ export default function AppShell() {
             <ProjectNavItem
               key={p._id}
               project={p}
-              onSelect={setActiveProject}
+              onSelect={(proj) => {
+                setActiveProject(proj);
+                setSidebarOpen(false);
+              }}
             />
           ))}
 
           <button
-            onClick={() => setShowCreateProject(true)}
+            onClick={() => {
+              setShowCreateProject(true);
+              setSidebarOpen(false);
+            }}
             className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-muted hover:bg-surface2 hover:text-white transition-all mt-1"
           >
             <i className="ti ti-plus text-base" />
@@ -215,7 +240,7 @@ export default function AppShell() {
             </button>
           ))}
         </div>
-
+          
         {/* User */}
         <div className="p-3 border-t border-border flex items-center gap-2.5">
           <Avatar name={user?.name} src={user?.avatar} size={28} />
@@ -234,12 +259,18 @@ export default function AppShell() {
       </aside>
 
       {/* MAIN */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Top bar */}
-        <header className="h-12 bg-surface border-b border-border flex items-center gap-3 px-5 flex-shrink-0">
+        <header className="h-12 bg-surface border-b border-border flex items-center gap-2 sm:gap-3 px-3 sm:px-5 flex-shrink-0">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="lg:hidden text-muted hover:text-white flex-shrink-0"
+          >
+            <i className="ti ti-menu-2 text-lg" />
+          </button>
           <div className="flex-1" />
 
-          <div className="flex items-center gap-2 bg-surface2 border border-border rounded-lg px-3 py-1.5 w-52">
+          <div className="hidden sm:flex items-center gap-2 bg-surface2 border border-border rounded-lg px-3 py-1.5 w-44 sm:w-52">
             <i className="ti ti-search text-muted text-sm" />
             <input
               placeholder="Search…"
