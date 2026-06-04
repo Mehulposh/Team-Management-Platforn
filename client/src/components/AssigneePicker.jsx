@@ -20,7 +20,10 @@ function AssigneePicker({ assignees, onUpdate }) {
 
   // Search users as user types
   useEffect(() => {
-    if (!search.trim()) { setResults([]); return; }
+    if (!search.trim()) { 
+        setResults([]); 
+        return; 
+    }
     const t = setTimeout(async () => {
       setSearching(true);
       try {
