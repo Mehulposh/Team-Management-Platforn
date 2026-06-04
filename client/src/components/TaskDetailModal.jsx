@@ -98,16 +98,15 @@ export default function TaskDetailModal({ task: initialTask, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-surface border border-border rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col animate-slide-up">
-        {/* Header */}
-        <div className="flex items-start gap-3 p-5 border-b border-border">
+      <div className="bg-surface border border-border rounded-none sm:rounded-2xl w-full h-full sm:h-auto sm:max-w-3xl max-h-screen sm:max-h-[90vh] flex flex-col animate-slide-up">        {/* Header */}
+        <div className="flex items-start gap-3 p-4 sm:p-5 border-b border-border">
           <div className="flex-1">
             <input
               className="w-full bg-transparent text-base font-semibold outline-none border-none text-white placeholder-muted"
               defaultValue={task.title}
               onBlur={(e) => handleUpdate('title', e.target.value)}
             />
-            <div className="flex items-center gap-3 mt-2">
+            <div className="flex flex-wrap items-center gap-2 mt-2">
               <span className={`status-${task.status}`}>
                 {task.status.replace('_', ' ')}
               </span>
@@ -133,12 +132,12 @@ export default function TaskDetailModal({ task: initialTask, onClose }) {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-border px-5">
+        <div className="flex overflow-x-auto border-b border-border px-2 sm:px-5">
           {['overview', 'activity', 'attachments'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`py-2.5 px-3 text-xs font-medium border-b-2 transition-all capitalize ${
+              className={`py-2.5 px-3 text-xs font-medium  whitespace-nowrap border-b-2 transition-all capitalize ${
                 activeTab === tab ? 'border-accent text-accent' : 'border-transparent text-muted hover:text-white'
               }`}
             >
@@ -149,9 +148,9 @@ export default function TaskDetailModal({ task: initialTask, onClose }) {
 
         <div className="flex-1 overflow-y-auto">
           {activeTab === 'overview' && (
-            <div className="flex gap-0">
+            <div className="flex flex-col lg:flex-row">
               {/* Left: description + subtasks + comments */}
-              <div className="flex-1 p-5 space-y-5">
+              <div className="flex-1 p-4 sm:p-5 space-y-5">
                 <div>
                   <label className="label">Description</label>
                   <textarea
@@ -181,7 +180,7 @@ export default function TaskDetailModal({ task: initialTask, onClose }) {
                       </label>
                     ))}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       className="input text-xs flex-1"
                       placeholder="Add subtask…"
@@ -222,7 +221,7 @@ export default function TaskDetailModal({ task: initialTask, onClose }) {
                   </div>
                   <div className="flex gap-2">
                     <Avatar name={user?.name} src={user?.avatar} size={28} />
-                    <div className="flex-1 flex gap-2">
+                    <div className="flex-1 flex flex-col sm:flex-row gap-2">
                       <input
                         className="input text-sm flex-1"
                         placeholder="Write a comment…"
@@ -237,7 +236,7 @@ export default function TaskDetailModal({ task: initialTask, onClose }) {
               </div>
 
               {/* Right: metadata */}
-              <div className="w-52 p-5 border-l border-border space-y-4 flex-shrink-0">
+              <div className="w-full lg:w-52 p-5 border-t lg:border-t-0 lg:border-l border-border space-y-4 flex-shrink-0">
                 
                <AssigneePicker 
                  assignees={task.assignees || []}
@@ -303,7 +302,7 @@ export default function TaskDetailModal({ task: initialTask, onClose }) {
               {task.attachments?.length === 0 && (
                 <p className="text-sm text-muted text-center py-8">No attachments yet</p>
               )}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {task.attachments?.map((a) => (
                   <a
                     key={a._id}
