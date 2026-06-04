@@ -32,7 +32,7 @@ export default function TaskDetailModal({ task: initialTask, onClose }) {
 
   const loadComments = useCallback(async () => {
     try {
-      const { data } = await commentsAPI.getAll(initialTask._id);
+      const { data } = await commentsAPI.getAll(initialTask._id);      
       setComments(data.comments);
     } catch (err) {console.log(err);
     }
