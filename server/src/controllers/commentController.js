@@ -7,11 +7,18 @@ import User from '../models/userModel.js';
 export const getComments = async (req, res, next) => {
   try {
     const { task } = req.query;
-    const comments = await Comment.find({ task, isDeleted: false })
+    const comments = await Comment.find({ 
+      task, 
+      $or: [
+        { isDeleted: false },
+        { isDeleted: { $exists: false } }  // Comments where isDeleted field doesn't exist
+      ] 
+    })
       .populate('author', 'name avatar')
       .populate('mentions', 'name avatar')
       .populate({ path: 'parentComment', populate: { path: 'author', select: 'name avatar' } })
       .sort({ createdAt: 1 });
+    
     res.json({ comments });
   } catch (err) { next(err); }
 };
