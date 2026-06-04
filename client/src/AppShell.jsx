@@ -5,9 +5,9 @@ import { useWorkspaceStore } from './zustand/workspaceStore.js';
 import { useNotificationStore } from './zustand/notificationStore.js';
 import { useSocket } from './socket/UseSocket.js';
 import NotificationPanel from './components/NotificationPanel.jsx';
+import EmailVerificationBanner from './components/EmailVerificationBanner.jsx';
 import CreateProjectModal from './components/CreateProjectModal.jsx';
 import Avatar from './components/Avatar.jsx';
-
 
 function ProjectNavItem({ project, onSelect }) {
   const location = useLocation();
@@ -64,7 +64,7 @@ function ProjectNavItem({ project, onSelect }) {
         <div className="mt-0.5 space-y-0.5 mb-1">
           {subLink(`/projects/${project._id}/board`,    'layout-kanban', 'Board')}
           {subLink(`/projects/${project._id}/sprints`,  'rocket',        'Sprints')}
-          {subLink(`/projects/${project._id}/analytics`, 'chart-bar', 'Analytics')}
+         
         </div>
       )}
     </div>
@@ -91,7 +91,7 @@ export default function AppShell() {
   useEffect(() => {
     fetchWorkspaces();
     fetchNotifications();
-  }, []);
+  }, [fetchNotifications,fetchWorkspaces]);
 
   const handleLogout = async () => {
     await logout();
@@ -262,7 +262,9 @@ export default function AppShell() {
 
           <Avatar name={user?.name} src={user?.avatar} size={28} />
         </header>
-
+        
+         {/* Email verification banner */}
+        <EmailVerificationBanner />
         <main className="flex-1 overflow-auto">
           <Outlet />
         </main>
