@@ -27,11 +27,11 @@ export const workspacesAPI = {
   get: (id) => api.get(`/workspaces/${id}`),
   update: (id, data) => api.patch(`/workspaces/${id}`, data),
   invite: (id, data) => api.post(`/workspaces/${id}/invite`, data),
+  addMember: (id, data) => api.post(`/workspaces/${id}/add-member`, data),
   acceptInvite: (token) => api.post('/workspaces/accept-invite', { token }),
   updateMemberRole: (wsId, userId, role) => api.patch(`/workspaces/${wsId}/members/${userId}`, { role }),
   removeMember: (wsId, userId) => api.delete(`/workspaces/${wsId}/members/${userId}`),
 };
-
 // ─── PROJECTS ─────────────────────────────────────────────────────────────
 export const projectsAPI = {
   getAll: (workspaceId) => api.get(`/projects?workspace=${workspaceId}`),
