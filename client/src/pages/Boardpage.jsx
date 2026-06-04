@@ -20,7 +20,7 @@ function Column({ column, tasks, onAddTask }) {
   const { setNodeRef } = useDroppable({ id: column._id });
 
   return (
-    <div className="min-w-[272px] w-[272px] flex flex-col">
+    <div className="w-full lg:w-[272px] lg:min-w-[272px] flex flex-col">
       {/* Header */}
       <div className="flex items-center gap-2 px-3 py-2.5 rounded-t-xl bg-surface2 border border-border border-b-0">
         <span className="w-2 h-2 rounded-full" style={{ background: column.color }} />
@@ -134,19 +134,19 @@ export default function BoardPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Board header */}
-      <div className="flex items-center gap-3 px-6 py-3 border-b border-border bg-surface flex-shrink-0">
-        <h1 className="font-semibold text-sm">{activeProject?.name || 'Board'}</h1>
-        <div className="flex gap-1">
+      <div className="flex flex-col sm:flex-row gap-3 px-3 sm:px-6 py-3 border-b border-border bg-surface flex-shrink-0">
+        <h1 className="font-semibold text-sm sm:text-base">{activeProject?.name || 'Board'}</h1>
+        <div className="flex flex-wrap gap-1">
           {['All', 'High Priority', 'My Tasks', 'Overdue'].map((f) => (
-            <button key={f} className="text-xs px-2.5 py-1 rounded-full border border-border text-muted hover:text-white hover:border-border2 transition-all">
+            <button key={f} className="text-[11px] sm:text-xs px-2 py-1 rounded-full border border-border text-muted hover:text-white hover:border-border2 transition-all whitespace-nowrap">
               {f}
             </button>
           ))}
         </div>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="sm:ml-auto flex items-center gap-2">
           <button
             onClick={() => setCreateColumn(board?._id)}
-            className="btn-secondary text-xs py-1.5"
+            className="btn-secondary text-[11px] sm:text-xs py-1.5 whitespace-nowrap"
           >
             <i className="ti ti-plus" /> Add Column
           </button>
@@ -154,14 +154,14 @@ export default function BoardPage() {
       </div>
 
       {/* Kanban */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden">
+      <div className="flex-1 overflow-y-auto">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-4 p-5 h-full items-start">
+          <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 p-3 sm:p-5">
             {columns.map((col) => (
               <Column
                 key={col._id}
