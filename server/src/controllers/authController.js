@@ -95,8 +95,25 @@ export const refreshToken = async (req, res, next) => {
 // GET /api/auth/google/callback
 export const googleCallback = async (req, res) => {
   try {
-    sendTokenResponse(req.user, 200, res);
+    const user = req.user;
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+    
+    // Redirect to frontend OAuth handler page with tokens
+    const params = new URLSearchParams({
+      accessToken,
+      refreshToken,
+      userId: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar || '',
+      role: user.role,
+      isEmailVerified: user.isEmailVerified,
+    });
+
+    res.redirect(`${process.env.CLIENT_URL}/oauth-callback?${params.toString()}`);
   } catch (err) {
+    console.error('Google OAuth callback error:', err.message);
     res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
   }
 };
