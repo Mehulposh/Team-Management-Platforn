@@ -30,7 +30,7 @@ function Message({ msg, isOwn, onReact }) {
       <Avatar name={msg.sender?.name} src={msg.sender?.avatar} size={28} />
       <div className={`flex-1 min-w-0 ${isOwn ? 'items-end flex flex-col' : ''}`}>
         <div className={`flex items-center gap-2 mb-1 ${isOwn ? 'flex-row-reverse' : ''}`}>
-          <span className="text-xs font-semibold truncate max-w-[120px]">{msg.sender?.name}</span>
+          <span className="text-xs font-semibold truncate max-w-[140px]">{msg.sender?.name}</span>
           <span className="text-[10px] text-muted flex-shrink-0">{formatMsgTime(msg.createdAt)}</span>
           {msg.isEdited && <span className="text-[10px] text-muted">(edited)</span>}
         </div>
@@ -144,6 +144,28 @@ export default function ChatPage() {
   const typingTimeoutRef = useRef(null);
   const activeChannelRef = useRef(null);
 
+  const loadChannels = async () => {
+    try {
+      const { data } = await chatAPI.getChannels(activeWorkspace._id);
+      const list = data.channels || [];
+
+      setChannels(list);
+
+      if (activeChannelRef.current) {
+        const updated = list.find(
+          (c) => c._id === activeChannelRef.current
+        );
+
+        if (updated) {
+          setActiveChannel(updated);
+        }
+      } else if (list.length > 0) {
+        setActiveChannel(list[0]);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -160,6 +182,7 @@ export default function ChatPage() {
 
         try {
             const { data } = await chatAPI.getMessages(channelId);
+            console.log('messages', data)
             setMessages(data.messages);
         } catch (error) {
             console.error(error);
@@ -180,7 +203,12 @@ export default function ChatPage() {
 
     const onNewMsg = (msg) => {
       if (msg.channel === activeChannelRef.current) {
-        setMessages((prev) => [...prev, msg]);
+        setMessages((prev) => {
+          if (prev.find((m) => m._id === msg._id)) {
+            return prev;
+          }
+          return [...prev, msg];
+        });
       }
     };
     const onTyping = ({ userId, name }) => {
@@ -199,25 +227,19 @@ export default function ChatPage() {
     socket.on('channel:stop_typing', onStopTyping);
     socket.on('message:reaction_updated', onReaction);
 
+    const onChannelJoined = () => loadChannels();
+    socket.on('channel:joined', onChannelJoined);
     return () => {
       socket.emit('channel:leave', activeChannel._id);
       socket.off('message:new', onNewMsg);
       socket.off('channel:typing', onTyping);
       socket.off('channel:stop_typing', onStopTyping);
+      socket.off('channel:joined', onChannelJoined);
       socket.off('message:reaction_updated', onReaction);
     };
   }, [activeChannel?._id, loadMessages]);
 
-  const loadChannels = async () => {
-    try {
-      const { data } = await chatAPI.getChannels(activeWorkspace._id);
-      setChannels(data.channels);
-      if (data.channels.length > 0 && !activeChannel) {
-        setActiveChannel(data.channels[0]);
-      }
-    } catch (err) {console.error(err)}
-  };
-
+  
   const sendMessage = useCallback(() => {
     if (!input.trim() || !activeChannel) return;
     const socket = getSocket();
@@ -251,20 +273,35 @@ export default function ChatPage() {
     setShowCreateChannel(false);
   };
 
-   useEffect(() => {
-    if (activeWorkspace?._id) loadChannels();
+  useEffect(() => {
+      if (!activeWorkspace?._id) return;
+
+      setChannels([]);
+      setActiveChannel(null);
+      setMessages([]);
+      setTypingUsers([]);
+      setShowSidebar(true);
+
+      loadChannels();
   }, [activeWorkspace?._id]);
 
   return (
-    <div className="flex h-full overflow-hidden">
+    <div className="flex h-full overflow-hidden relative">
+      {showSidebar && (
+        <div
+          className="fixed inset-0 z-30 bg-black/60 lg:hidden"
+          onClick={() => setShowSidebar(false)}
+        />
+      )}
       {/* Channel sidebar */}
-      <div className={`${showSidebar ? 'flex' : 'hidden'} sm:flex w-full sm:w-56 min-w-0 sm:min-w-56 bg-surface border-r border-border flex-col absolute sm:relative z-20 h-full`}>
-        <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+      <aside className={`fixed lg:relative z-40 lg:z-auto h-full w-56 min-w-56 bg-surface border-r border-border flex flex-col transition-transform duration-200
+          ${showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+      >        <div className="px-4 py-3 border-b border-border flex items-center justify-between">
           <div>
             <h2 className="text-sm font-semibold">{activeWorkspace?.name || 'Chat'}</h2>
             <p className="text-[11px] text-muted">Team Chat</p>
           </div>
-          <button onClick={() => setShowSidebar(false)} className="sm:hidden text-muted hover:text-white">
+          <button onClick={() => setShowSidebar(false)} className="lg:hidden text-muted hover:text-white">
             <i className="ti ti-x" />
           </button>
         </div>
@@ -287,7 +324,11 @@ export default function ChatPage() {
 
           {channels.map((ch) => (
             <button key={ch._id}
-              onClick={() => { setActiveChannel(ch); setShowSidebar(false); }}
+              onClick={() => { 
+                setActiveChannel(ch); 
+                setMessages([]);
+                setShowSidebar(false); 
+              }}
               className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm transition-all ${
                 activeChannel?._id === ch._id ? 'bg-accent/15 text-accent' : 'text-muted hover:bg-surface2 hover:text-white'
               }`}>
@@ -296,7 +337,7 @@ export default function ChatPage() {
             </button>
           ))}
         </div>
-      </div>
+      </aside>
 
       {/* Messages area */}
       <div className="flex-1 flex flex-col min-w-0">
@@ -305,7 +346,7 @@ export default function ChatPage() {
             {/* Channel header */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-surface flex-shrink-0">
               <button onClick={() => setShowSidebar(true)}
-                className="sm:hidden text-muted hover:text-white mr-1">
+                className="lg:hidden text-muted hover:text-white mr-1">
                 <i className="ti ti-menu-2" />
               </button>
               <span className="text-base text-muted">#</span>
